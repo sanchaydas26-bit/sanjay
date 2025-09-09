@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Tracking System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(to right,#000000,#213448,#547792,#94B4C1);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1200px;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            min-height: 90vh;
+        }
+
+        /* Header Styles */
+        .app-header {
+            background: linear-gradient(to right,#000000);
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            font-size: 28px;
+        }
+
+        .app-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* Home Button Styles */
+        .home-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .home-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Main Content Styles */
+        .app-main {
+            display: flex;
+            flex: 1;
+        }
+
+        /* Front Page Styles */
+        #frontPage {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            min-height: 500px;
+        }
+
+        .image-section {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #A4CCD9;
+            height: 300px;
+        }
+
+        .image-wrapper {
+            width: 100%;
+            height: 100%;
+            border: 4px solid #000000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000000;
+        }
+
+        .image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .welcome-section {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: #547792;
+        }
+
+        .welcome-title {
+            font-size: 36px;
+            color: #000000;
+            margin-bottom: 20px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .welcome-text {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            color: #ECEFCA;
+            text-align: center;
+        }
+
+        .welcome-features {
+            margin: 20px 0;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .feature i {
+            background: #ECEFCA;
+            color: #000000;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 14px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            justify-content: center;
+        }
+
+        .action-btn {
+            padding: 14px 28px;
+            border-radius: 6px;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .driver-btn {
+            background: #d70404;
+            color: white;
+        }
+
+        .viewer-btn {
+            background: #333;
+            color: white;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Driver Page Styles */
+        #driver {
+            display: none;
+            width: 100%;
+            padding: 30px;
+            background: #94B4C1;
+        }
+
+        .driver-container {
+            display: flex;
+            gap: 30px;
+        }
+
+        .driver-form {
+            flex: 1;
+        }
+
+        .driver-map {
+            flex: 1;
+            height: 400px;
+            background: #ECEFCA;
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #000000;
+            font-weight: 500;
+            position: relative;
+        }
+
+        #driverMap {
+            width: 100%;
+            height: 100%;
+        }
+
+        .card {
+            padding: 25px;
+            border-radius: 10px;
+            background: #547792;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        .card h2 {
+            color: #000000;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            border-color: #d70404;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(215, 4, 4, 0.1);
+        }
+
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .row > div {
+            flex: 1;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border-radius: 6px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-start {
+            background: #d70404;
+            color: white;
+        }
+
+        .btn-stop {
+            background: #666;
+            color: #000000;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .status-tracking {
+            background: #e6fffa;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .status-idle {
+            background: #fffbeb;
+            color: #000000;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .status-error {
+            background: #fef2f2;
+            color: #b91c1c;
+            border-left: 4px solid #ef4444;
+        }
+
+        /* Viewer Page Styles */
+        #viewer {
+            display: none;
+            flex-direction: column;
+            width: 100%;
+            height: 600px;
+        }
+
+        .viewer-header {
+            padding: 15px 25px;
+            background: #547792;
+            color: white;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .viewer-header h1 {
+            margin: 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pill {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 999px;
+            font-size: 12px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .viewer-controls {
+            display: flex;
+            gap: 15px;
+            margin-left: auto;
+            align-items: center;
+        }
+
+        .viewer-controls label {
+            color: white;
+            margin-bottom: 0;
+            font-weight: 500;
+        }
+
+        .viewer-controls select, .viewer-controls input {
+            width: auto;
+            min-width: 120px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        #map {
+            width: 100%;
+            flex: 1;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            z-index: 1000;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .bus-icon {
+            font-size: 24px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 900px) {
+            .app-main {
+                flex-direction: column;
+            }
+            
+            #frontPage {
+                flex-direction: column;
+            }
+            
+            .driver-container {
+                flex-direction: column;
+            }
+            
+            .viewer-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .viewer-controls {
+                margin-left: 0;
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            
+            .action-buttons {
+                flex-direction: column;
+            }
+            
+            .image-section {
+                height: 250px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .image-section {
+                height: 200px;
+            }
+            
+            .welcome-title {
+                font-size: 28px;
+            }
+            
+            .action-btn {
+                padding: 12px 20px;
+                font-size: 14px;
+            }
+            
+            .home-btn {
+                padding: 6px 10px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-bus"></i></div>
+                <h1 class="app-title">Bus Tracking System</h1>
+            </div>
+            <!-- Home button will be added dynamically by JavaScript -->
+        </header>
+        
+        <main class="app-main">
+            <!-- Front Page -->
+            <section id="frontPage">
+                <div class="image-section">
+                    <div class="image-wrapper">
+                        <img src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1200&q=80" alt="Bus Tracking System">
+                    </div>
+                </div>
+                
+                <div class="welcome-section">
+                    <h2 class="welcome-title">Track Buses in Real-Time</h2>
+                    <p class="welcome-text">Our advanced system allows bus drivers to share their location and passengers to track buses in real-time. Never miss your bus again with our reliable tracking technology!</p>
+                    
+                    <div class="welcome-features">
+                        <div class="feature">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <span>Real-time bus location tracking</span>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-route"></i>
+                            <span>View bus routes and stops on interactive maps</span>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-clock"></i>
+                            <span>Accurate estimated arrival times</span>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-bus"></i>
+                            <span>Support for multiple buses and routes</span>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="action-btn driver-btn" id="goDriver">
+                            <i class="fas fa-user"></i> Driver Portal
+                        </button>
+                        <button class="action-btn viewer-btn" id="goViewer">
+                            <i class="fas fa-map-marked-alt"></i> Track Buses
+                        </button>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Driver Page -->
+            <section id="driver">
+                <div class="driver-container">
+                    <div class="driver-form">
+                        <div class="card">
+                            <h2><i class="fas fa-user-circle"></i> Bus Driver Portal</h2>
+                            <div class="form-group">
+                                <label for="busId">Bus ID</label>
+                                <input id="busId" placeholder="e.g., bus-101" />
+                            </div>
+                            <div class="form-group">
+                                <label for="routeIdDriver">Route ID (optional)</label>
+                                <input id="routeIdDriver" placeholder="e.g., route-A" />
+                            </div>
+                            
+                            <div class="row">
+                                <div class="form-group">
+                                    <label for="interval">Update Frequency</label>
+                                    <select id="interval">
+                                        <option value="5000">5 seconds</option>
+                                        <option value="10000">10 seconds</option>
+                                        <option value="15000" selected>15 seconds</option>
+                                        <option value="30000">30 seconds</option>
+                                        <option value="60000">60 seconds</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="accuracy">Location Accuracy</label>
+                                    <select id="accuracy">
+                                        <option value="true" selected>High Accuracy</option>
+                                        <option value="false">Balanced</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="btn-group">
+                                <button class="btn btn-start" id="startBtn">
+                                    <i class="fas fa-play"></i> Start Tracking
+                                </button>
+                                <button class="btn btn-stop" id="stopBtn" disabled>
+                                    <i class="fas fa-stop"></i> Stop Tracking
+                                </button>
+                            </div>
+                            
+                            <div class="status status-idle" id="status">
+                                <i class="fas fa-info-circle"></i> Status: Ready to start tracking
+                            </div>
+                            
+                            <p style="margin-top: 15px; font-size: 13px; color: #ECEFCA;">
+                                <i class="fas fa-exclamation-circle"></i> Keep this page open for tracking. Location permissions required.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="driver-map">
+                        <div id="driverMap"></div>
+                        <div id="driverMapPlaceholder" style="text-align: center; position: absolute; z-index: 100;">
+                            <i class="fas fa-map-marked-alt" style="font-size: 48px; margin-bottom: 15px; color: #d70404;"></i>
+                            <p>Live Map Preview</p>
+                            <p style="font-size: 13px; margin-top: 5px;">Your location will be shown here when tracking is active</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Viewer Page -->
+            <section id="viewer">
+                <header class="viewer-header">
+                    <h1><i class="fas fa-map-marker-alt"></i> Live Bus Tracker</h1>
+                    <span class="pill" id="statusViewer">
+                        <i class="fas fa-wifi"></i> Connected
+                    </span>
+                    
+                    <div class="viewer-controls">
+                        <label>Bus:
+                            <select id="busSelect">
+                                <option value="all">All Buses</option>
+                                <option value="bus-101">Bus 101</option>
+                                <option value="bus-102">Bus 102</option>
+                                <option value="bus-103">Bus 103</option>
+                            </select>
+                        </label>
+                        <label>Route:
+                            <input id="routeIdViewer" placeholder="e.g., route-A" />
+                        </label>
+                        <button class="btn btn-start" id="fitBtn">
+                            <i class="fas fa-search-location"></i> Fit Map
+                        </button>
+                    </div>
+                </header>
+                <div id="map">
+                    <!-- Map will be rendered here -->
+                </div>
+                
+                <div class="legend">
+                    <div><strong><i class="fas fa-key"></i> Legend</strong></div>
+                    <div>🚌 Bus | ⛳ Stop | ⏱ ETA (estimated)</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- LEAFLET -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Navigation functionality
+        const frontPage = document.getElementById('frontPage');
+        const driverPage = document.getElementById('driver');
+        const viewerPage = document.getElementById('viewer');
+        const appHeader = document.querySelector('.app-header');
+        
+        // Create home button
+        const homeButton = document.createElement('button');
+        homeButton.className = 'home-btn';
+        homeButton.innerHTML = '<i class="fas fa-home"></i> Home';
+        homeButton.style.display = 'none';
+        homeButton.addEventListener('click', () => {
+            showSection('frontPage');
+            homeButton.style.display = 'none';
+        });
+        
+        // Add home button to header
+        appHeader.appendChild(homeButton);
+        
+        function showSection(section) {
+            // Hide all sections
+            frontPage.style.display = 'none';
+            driverPage.style.display = 'none';
+            viewerPage.style.display = 'none';
+            
+            // Show selected section
+            if (section === 'frontPage') {
+                frontPage.style.display = 'flex';
+                homeButton.style.display = 'none';
+            } else if (section === 'driver') {
+                driverPage.style.display = 'block';
+                homeButton.style.display = 'flex';
+                // Initialize driver map when shown
+                setTimeout(() => {
+                    if (typeof driverMap !== 'undefined') driverMap.invalidateSize();
+                }, 100);
+            } else if (section === 'viewer') {
+                viewerPage.style.display = 'flex';
+                homeButton.style.display = 'flex';
+                // Initialize map when viewer is shown
+                initViewerMap();
+                setTimeout(() => {
+                    if (typeof map !== 'undefined') map.invalidateSize();
+                }, 100);
+            }
+        }
+        
+        // Set up navigation event listeners
+        document.getElementById('goDriver').addEventListener('click', () => {
+            showSection('driver');
+        });
+        
+        document.getElementById('goViewer').addEventListener('click', () => {
+            showSection('viewer');
+        });
+        
+        // --- DRIVER TRACKING ---
+        const statusEl = document.getElementById('status');
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const busIdEl = document.getElementById('busId');
+        const routeIdDriverEl = document.getElementById('routeIdDriver');
+        const intervalEl = document.getElementById('interval');
+        const accuracyEl = document.getElementById('accuracy');
+        const driverMapPlaceholder = document.getElementById('driverMapPlaceholder');
+        
+        let watchId = null;
+        let lastWrite = 0;
+        let driverMap = null;
+        let driverMarker = null;
+        let currentBusId = null;
+        
+        // Initialize driver map
+        function initDriverMap() {
+            driverMap = L.map('driverMap').setView([20.5937, 78.9629], 5);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(driverMap);
+            
+            // Hide placeholder when map is ready
+            driverMapPlaceholder.style.display = 'none';
+        }
+        
+        function setStatus(msg, type = 'idle') {
+            statusEl.innerHTML = "<i class='fas fa-info-circle'></i> Status: " + msg;
+            statusEl.className = 'status';
+            if (type === 'tracking') {
+                statusEl.classList.add('status-tracking');
+            } else if (type === 'error') {
+                statusEl.classList.add('status-error');
+            } else {
+                statusEl.classList.add('status-idle');
+            }
+        }
+        
+        function startTracking() {
+            const busId = busIdEl.value.trim();
+            if (!busId) {
+                alert('Please enter a Bus ID');
+                return;
+            }
+            
+            currentBusId = busId;
+            const routeId = routeIdDriverEl.value.trim() || null;
+            
+            if (!('geolocation' in navigator)) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+            
+            // Initialize driver map if not already done
+            if (!driverMap) {
+                initDriverMap();
+            }
+            
+            const intervalMs = parseInt(intervalEl.value, 10);
+            const highAcc = accuracyEl.value === 'true';
+            
+            setStatus('Requesting location permission...', 'idle');
+            
+            watchId = navigator.geolocation.watchPosition(
+                function(pos) {
+                    const now = Date.now();
+                    if (now - lastWrite < intervalMs) return;
+                    
+                    lastWrite = now;
+                    const c = pos.coords;
+                    
+                    // Store bus data in localStorage
+                    const busData = {
+                        id: busId,
+                        lat: c.latitude,
+                        lng: c.longitude,
+                        speed: c.speed || 0,
+                        heading: c.heading || null,
+                        updatedAt: now,
+                        routeId: routeId
+                    };
+                    
+                    localStorage.setItem('busData_' + busId, JSON.stringify(busData));
+                    
+                    // Update driver map
+                    if (driverMap) {
+                        const latlng = [c.latitude, c.longitude];
+                        
+                        if (!driverMarker) {
+                            driverMarker = L.marker(latlng).addTo(driverMap)
+                                .bindPopup(`<b>Bus ${busId}</b><br>Your current location`)
+                                .openPopup();
+                        } else {
+                            driverMarker.setLatLng(latlng);
+                        }
+                        
+                        driverMap.setView(latlng, 15);
+                    }
+                    
+                    setStatus('Location updated at ' + new Date(now).toLocaleTimeString(), 'tracking');
+                },
+                err => {
+                    setStatus('Error: ' + err.message, 'error');
+                },
+                {
+                    enableHighAccuracy: highAcc,
+                    maximumAge: 0,
+                    timeout: 15000
+                }
+            );
+            
+            startBtn.disabled = true;
+            stopBtn.disabled = false;
+            setStatus('Tracking active...', 'tracking');
+        }
+        
+        function stopTracking() {
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+            }
+            
+            // Clear the bus data from localStorage
+            if (currentBusId) {
+                localStorage.removeItem('busData_' + currentBusId);
+                currentBusId = null;
+            }
+            
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+            setStatus('Tracking stopped', 'idle');
+        }
+        
+        startBtn.addEventListener('click', startTracking);
+        stopBtn.addEventListener('click', stopTracking);
+        
+        // --- VIEWER MAP ---
+        let map = null;
+        let busMarkers = {};
+        
+        function initViewerMap() {
+            if (!map) {
+                // Initialize map (centered on India by default)
+                map = L.map('map').setView([20.5937, 78.9629], 5);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(map);
+            }
+            
+            // Clear existing markers
+            for (const id in busMarkers) {
+                map.removeLayer(busMarkers[id]);
+            }
+            busMarkers = {};
+            
+            // Load bus data from localStorage
+            loadBusData();
+            
+            // Set up periodic updates
+            setInterval(loadBusData, 3000);
+        }
+        
+        function loadBusData() {
+            // Get all bus data from localStorage
+            const busIds = ['bus-101', 'bus-102', 'bus-103'];
+            const selectedBus = document.getElementById('busSelect').value;
+            
+            for (const busId of busIds) {
+                // Skip if we're showing a specific bus and this isn't it
+                if (selectedBus !== 'all' && selectedBus !== busId) {
+                    if (busMarkers[busId]) {
+                        map.removeLayer(busMarkers[busId]);
+                        delete busMarkers[busId];
+                    }
+                    continue;
+                }
+                
+                const busDataStr = localStorage.getItem('busData_' + busId);
+                
+                if (busDataStr) {
+                    const busData = JSON.parse(busDataStr);
+                    
+                    // Create or update marker
+                    if (busMarkers[busId]) {
+                        busMarkers[busId].setLatLng([busData.lat, busData.lng]);
+                    } else {
+                        // Create a custom bus icon
+                        const busIcon = L.divIcon({
+                            className: 'bus-marker',
+                            html: '<div style="background-color: #d70404; color: white; padding: 5px; border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">🚌</div>',
+                            iconSize: [30, 30],
+                            iconAnchor: [15, 15]
+                        });
+                        
+                        busMarkers[busId] = L.marker([busData.lat, busData.lng], {icon: busIcon})
+                            .addTo(map)
+                            .bindPopup(`
+                                <b>Bus ${busData.id}</b><br>
+                                Last updated: ${new Date(busData.updatedAt).toLocaleTimeString()}<br>
+                                ${busData.routeId ? 'Route: ' + busData.routeId : ''}
+                            `);
+                    }
+                } else {
+                    // Remove marker if bus data doesn't exist
+                    if (busMarkers[busId]) {
+                        map.removeLayer(busMarkers[busId]);
+                        delete busMarkers[busId];
+                    }
+                }
+            }
+            
+            // Fit map to show all markers if we have any
+            const markers = Object.values(busMarkers);
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        }
+        
+        // Set up event listeners for viewer controls
+        document.getElementById('busSelect').addEventListener('change', loadBusData);
+        document.getElementById('fitBtn').addEventListener('click', () => {
+            const markers = Object.values(busMarkers);
+            if (markers.length > 0) {
+                const group = new L.featureGroup(markers);
+                map.fitBounds(group.getBounds().pad(0.1));
+            }
+        });
+        
+        // Initialize the app with front page visible
+        showSection('frontPage');
+    </script>
+</body>
+</html>
